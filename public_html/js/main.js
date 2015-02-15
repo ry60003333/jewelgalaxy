@@ -27,15 +27,6 @@
     var DEFAULT_EXPLOSION_SPEED = 35;
     var DEFAULT_IMPLOSION_SPEED = 40;
 
-    // Keep the old ones for reference
-    /*var DEFAULT_START_RADIUS = 8;
-     var DEFAULT_MAX_SPEED = 40;
-     var DEFAULT_MAX_RADIUS = 45;
-     var DEFAULT_MIN_RADIUS = 2;
-     var DEFAULT_MAX_LIFETIME = 5;
-     var DEFAULT_EXPLOSION_SPEED = 30;
-     var DEFAULT_IMPLOSION_SPEED = 42;*/
-
     // Circle states
     var CIRCLE_STATE_NORMAL = 0;
     var CIRCLE_STATE_EXPLODING = 1;
@@ -364,6 +355,44 @@
         }
     }
 
+    /*
+    //initial version
+    //should be tested and fixed after project is cleaned up.
+    function checkForCollisions() {
+        for (var i = 0; i < circles.length; i++)
+        {
+            var c1 = circles[i];
+
+            for (var j = 0; j < circles.length; j++)
+            {
+                var c2 = circles[j];
+
+                //if two circles are near each other...
+                if (c1.x + c1.radius + c2.radius > c2.x
+                    && c1.x < c2.x + c1.radius + c2.radius
+                    && c1.y + c1.radius + c2.radius > c2.y
+                    && c1.y < c2.y + c1.radius + c2.radius) {
+
+                    //if two circles are colliding...
+                    if (Utilities.circlesIntersect(c1, c2)) {
+
+                        //swap their velocities, since they have the same mass
+                        var c1xSpeed = c1.xSpeed;
+                        var c1ySpeed = c1.ySpeed;
+                        var c2xSpeed = c2.xSpeed;
+                        var c2ySpeed = c2.ySpeed;
+
+                        c1.xSpeed += c2xSpeed;
+                        c1.ySpeed += c2ySpeed;
+                        c2.xSpeed += c1xSpeed;
+                        c2.ySpeed += c1ySpeed;
+                    }
+                }
+            }
+        }
+    }
+    */
+
     function checkForCollisions() {
         if (gameState == GAME_STATE_EXPLODING) {
             // check for collisions between circles
@@ -387,7 +416,6 @@
 
                     // Now you finally can check for a collision
                     if (Utilities.circlesIntersect(c1, c2)) {
-
                         c2.state = CIRCLE_STATE_EXPLODING;
                         c2.xSpeed = c2.ySpeed = 0;
                         roundScore++;
