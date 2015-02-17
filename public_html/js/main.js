@@ -19,13 +19,13 @@
     var CANVAS_WIDTH = 800, CANVAS_HEIGHT = 600;
 
     // ALL THE CONSTANTS
-    var DEFAULT_START_RADIUS = 10;
-    var DEFAULT_MAX_SPEED = 80;
-    var DEFAULT_MAX_RADIUS = 45;
+    var DEFAULT_START_RADIUS = 30;
+    var DEFAULT_MAX_SPEED = 90;
+    var DEFAULT_MAX_RADIUS = 65;
     var DEFAULT_MIN_RADIUS = 2;
     var DEFAULT_MAX_LIFETIME = 1;
-    var DEFAULT_EXPLOSION_SPEED = 35;
-    var DEFAULT_IMPLOSION_SPEED = 40;
+    var DEFAULT_EXPLOSION_SPEED = 50;
+    var DEFAULT_IMPLOSION_SPEED = 60;
 
     // Circle states
     var CIRCLE_STATE_NORMAL = 0;
@@ -43,7 +43,7 @@
     var GAME_STATE_REPEAT_LEVEL = 5;
 
     // Number stuff
-    var NUM_CIRCLES_START = 10;
+    var NUM_CIRCLES_START = 5;
     var NUM_CIRCLES_LEVEL_INCREASE = 5;
     var NUM_CIRCLES_END = 60;
     var PERCENT_CIRCLES_TO_ADVANCE = 0.3;
@@ -343,8 +343,6 @@
             }
 
             // Move the circle
-            //c.x += c.xSpeed / 60.0;
-            //c.y += c.ySpeed / 60.0;
             c.move(dt);
 
             // Did the circle leave the screen?
@@ -355,7 +353,6 @@
         }
     }
 
-    /*
     //initial version
     //should be tested and fixed after project is cleaned up.
     function checkForCollisions() {
@@ -373,26 +370,75 @@
                     && c1.y + c1.radius + c2.radius > c2.y
                     && c1.y < c2.y + c1.radius + c2.radius) {
 
+                    // don't check for collisions if c2 is the same circle
+                    if (c1 === c2)
+                        continue;
+
                     //if two circles are colliding...
                     if (Utilities.circlesIntersect(c1, c2)) {
 
-                        //swap their velocities, since they have the same mass
-                        var c1xSpeed = c1.xSpeed;
-                        var c1ySpeed = c1.ySpeed;
-                        var c2xSpeed = c2.xSpeed;
-                        var c2ySpeed = c2.ySpeed;
+                        //calculate their new velocities
+                        var newVelX1 = ((c1.xSpeed * (c1.mass - c2.mass)) + (2 * c2.mass * c2.xSpeed)) / (c1.mass + c2.mass);
+                        var newVelY1 = ((c1.ySpeed * (c1.mass - c2.mass)) + (2 * c2.mass * c2.ySpeed)) / (c1.mass + c2.mass);
+                        var newVelX2 = ((c2.xSpeed * (c2.mass - c1.mass)) + (2 * c1.mass * c1.xSpeed)) / (c1.mass + c2.mass);
+                        var newVelY2 = ((c2.ySpeed * (c2.mass - c1.mass)) + (2 * c1.mass * c1.ySpeed)) / (c1.mass + c2.mass);
 
-                        c1.xSpeed += c2xSpeed;
-                        c1.ySpeed += c2ySpeed;
-                        c2.xSpeed += c1xSpeed;
-                        c2.ySpeed += c1ySpeed;
+                        c1.xSpeed = newVelX1;
+                        c1.ySpeed = newVelY1;
+                        c2.xSpeed = newVelX2;
+                        c2.ySpeed = newVelY2;
+
+                        c1.x += newVelX1;
+                        c1.y += newVelY1;
+                        c2.x += newVelX2;
+                        c2.y += newVelY2;
+
+                        playEffect();
                     }
                 }
             }
         }
-    }
-    */
 
+        /*
+        // round over?
+        var isOver = true;
+        for (var i = 0; i < circles.length; i++) {
+            var c = circles[i];
+            if (c.state != CIRCLE_STATE_NORMAL && c.state != CIRCLE_STATE_DONE) {
+                isOver = false;
+                break;
+            }
+        } // end for
+
+        if (isOver) {
+
+            if (roundScore < Math.floor(numCircles * PERCENT_CIRCLES_TO_ADVANCE)) {
+                gameState = GAME_STATE_REPEAT_LEVEL;
+            }
+            else
+            {
+                totalScore += roundScore;
+
+                if (numCircles >= NUM_CIRCLES_END) {
+                    gameState = GAME_STATE_END;
+
+                    // Check for a new highscore
+                    if (totalScore > currentHighscore) {
+                        currentHighscore = totalScore;
+                        localStorage.setItem(LOCAL_STORAGE_HIGHSCORE_KEY, currentHighscore);
+                        gotHighscore = true;
+                    }
+                }
+                else {
+                    gameState = GAME_STATE_ROUND_OVER;
+                }
+            }
+
+            stopAudio();
+            */
+    }
+
+    /*
     function checkForCollisions() {
         if (gameState == GAME_STATE_EXPLODING) {
             // check for collisions between circles
@@ -466,7 +512,7 @@
             }
 
         } // end if GAME_STATE_EXPLODING
-    } // end function
+    } // end function*/
 
     function drawCircles() {
         if (gameState == GAME_STATE_ROUND_OVER || gameState == GAME_STATE_END || gameState == GAME_STATE_REPEAT_LEVEL)
@@ -656,6 +702,7 @@
             c.xSpeed = randomVector.x;
             c.ySpeed = randomVector.y;
             c.speed = currentMaxSpeed;
+            c.mass = 1.0;
 
             //c.fillStyle = getRandomColor();
             c.fillStyle = getRandomLevelColor();
