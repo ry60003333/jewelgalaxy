@@ -19,9 +19,9 @@
     var CANVAS_WIDTH = 800, CANVAS_HEIGHT = 600;
 
     // ALL THE CONSTANTS
-    var DEFAULT_START_RADIUS = 30;
+    var DEFAULT_START_RADIUS = 50;
     var DEFAULT_MAX_SPEED = 90;
-    var DEFAULT_MAX_RADIUS = 65;
+    var DEFAULT_MAX_RADIUS = 70;
     var DEFAULT_MIN_RADIUS = 2;
     var DEFAULT_MAX_LIFETIME = 1;
     var DEFAULT_EXPLOSION_SPEED = 50;
@@ -30,20 +30,18 @@
     // Circle states
     var CIRCLE_STATE_NORMAL = 0;
     var CIRCLE_STATE_EXPLODING = 1;
-    var CIRCLE_STATE_MAX_SIZE = 2;
-    var CIRCLE_STATE_IMPLODING = 3;
-    var CIRCLE_STATE_DONE = 4;
+    var CIRCLE_STATE_IMPLODING = 2;
+    var CIRCLE_STATE_DONE = 3;
 
     // Game states
     var GAME_STATE_BEGIN = 0;
     var GAME_STATE_DEFAULT = 1;
-    var GAME_STATE_EXPLODING = 2;
-    var GAME_STATE_ROUND_OVER = 3;
-    var GAME_STATE_END = 4;
-    var GAME_STATE_REPEAT_LEVEL = 5;
+    var GAME_STATE_ROUND_OVER = 2;
+    var GAME_STATE_END = 3;
+    var GAME_STATE_REPEAT_LEVEL = 4;
 
     // Number stuff
-    var NUM_CIRCLES_START = 5;
+    var NUM_CIRCLES_START = 10;
     var NUM_CIRCLES_LEVEL_INCREASE = 5;
     var NUM_CIRCLES_END = 60;
     var PERCENT_CIRCLES_TO_ADVANCE = 0.3;
@@ -312,23 +310,15 @@
 
             var c = circles[i];
 
-            if (c.state === CIRCLE_STATE_DONE)
+            if (c.state === CIRCLE_STATE_DONE) {
                 continue;
+            }
 
             if (c.state === CIRCLE_STATE_EXPLODING) {
                 c.radius += currentExplosionSpeed * dt;
                 if (c.radius >= currentMaxRadius) {
-                    c.state = CIRCLE_STATE_MAX_SIZE;
+                    c.state = CIRCLE_STATE_DONE;
                     console.log("circle #" + i + " hit currentMaxRadius");
-                }
-                continue;
-            }
-
-            if (c.state === CIRCLE_STATE_MAX_SIZE) {
-                c.lifetime += dt;
-                if (c.lifetime >= currentMaxLifetime) {
-                    c.state = CIRCLE_STATE_IMPLODING;
-                    console.log("circle #" + i + " hit currentMaxLifetime");
                 }
                 continue;
             }
@@ -353,8 +343,6 @@
         }
     }
 
-    //initial version
-    //should be tested and fixed after project is cleaned up.
     function checkForCollisions() {
         for (var i = 0; i < circles.length; i++)
         {
@@ -377,23 +365,46 @@
                     //if two circles are colliding...
                     if (Utilities.circlesIntersect(c1, c2)) {
 
-                        //calculate their new velocities
-                        var newVelX1 = ((c1.xSpeed * (c1.mass - c2.mass)) + (2 * c2.mass * c2.xSpeed)) / (c1.mass + c2.mass);
-                        var newVelY1 = ((c1.ySpeed * (c1.mass - c2.mass)) + (2 * c2.mass * c2.ySpeed)) / (c1.mass + c2.mass);
-                        var newVelX2 = ((c2.xSpeed * (c2.mass - c1.mass)) + (2 * c1.mass * c1.xSpeed)) / (c1.mass + c2.mass);
-                        var newVelY2 = ((c2.ySpeed * (c2.mass - c1.mass)) + (2 * c1.mass * c1.ySpeed)) / (c1.mass + c2.mass);
+                        if (c1.state == CIRCLE_STATE_EXPLODING && c2.clicked == true) {
+                            //calculate their new velocities
+                            var newVelX = ((c2.xSpeed * (c2.mass - c1.mass)) + (2 * c1.mass * -c2.xSpeed)) / (c1.mass + c2.mass);
+                            var newVelY = ((c2.ySpeed * (c2.mass - c1.mass)) + (2 * c1.mass * -c2.ySpeed)) / (c1.mass + c2.mass);
 
-                        c1.xSpeed = newVelX1;
-                        c1.ySpeed = newVelY1;
-                        c2.xSpeed = newVelX2;
-                        c2.ySpeed = newVelY2;
+                            c2.xSpeed = newVelX;
+                            c2.ySpeed = newVelY;
 
-                        c1.x += newVelX1;
-                        c1.y += newVelY1;
-                        c2.x += newVelX2;
-                        c2.y += newVelY2;
+                            c2.clicked = false;
+                        }
 
-                        playEffect();
+                        else if (c2.state == CIRCLE_STATE_EXPLODING && c1.clicked == true) {
+                            //calculate their new velocities
+                            var newVelX = ((c1.xSpeed * (c1.mass - c2.mass)) + (2 * c2.mass * -c1.xSpeed)) / (c1.mass + c2.mass);
+                            var newVelY = ((c1.ySpeed * (c1.mass - c2.mass)) + (2 * c2.mass * -c1.ySpeed)) / (c1.mass + c2.mass);
+
+                            c1.xSpeed = newVelX;
+                            c1.ySpeed = newVelY;
+
+                            c1.clicked = false;
+                        }
+
+                        else if (c1.state == CIRCLE_STATE_NORMAL && c2.state == CIRCLE_STATE_NORMAL) {
+                            //calculate their new velocities
+                            var newVelX1 = ((c1.xSpeed * (c1.mass - c2.mass)) + (2 * c2.mass * c2.xSpeed)) / (c1.mass + c2.mass);
+                            var newVelY1 = ((c1.ySpeed * (c1.mass - c2.mass)) + (2 * c2.mass * c2.ySpeed)) / (c1.mass + c2.mass);
+                            var newVelX2 = ((c2.xSpeed * (c2.mass - c1.mass)) + (2 * c1.mass * c1.xSpeed)) / (c1.mass + c2.mass);
+                            var newVelY2 = ((c2.ySpeed * (c2.mass - c1.mass)) + (2 * c1.mass * c1.ySpeed)) / (c1.mass + c2.mass);
+
+                            c1.xSpeed = newVelX1;
+                            c1.ySpeed = newVelY1;
+                            c2.xSpeed = newVelX2;
+                            c2.ySpeed = newVelY2;
+
+                            //update their positions so they're not colliding anymore
+                            c1.x += newVelX1;
+                            c1.y += newVelY1;
+                            c2.x += newVelX2;
+                            c2.y += newVelY2;
+                        }
                     }
                 }
             }
@@ -437,82 +448,6 @@
             stopAudio();
             */
     }
-
-    /*
-    function checkForCollisions() {
-        if (gameState == GAME_STATE_EXPLODING) {
-            // check for collisions between circles
-            for (var i = 0; i < circles.length; i++) {
-                var c1 = circles[i];
-                // only check for collisions if c1 is exploding
-                if (c1.state === CIRCLE_STATE_NORMAL)
-                    continue;
-                if (c1.state === CIRCLE_STATE_DONE)
-                    continue;
-                for (var j = 0; j < circles.length; j++) {
-                    var c2 = circles[j];
-                    // don't check for collisions if c2 is the same circle
-                    if (c1 === c2)
-                        continue;
-                    // don't check for collisions if c2 is already exploding 
-                    if (c2.state != CIRCLE_STATE_NORMAL)
-                        continue;
-                    if (c2.state === CIRCLE_STATE_DONE)
-                        continue;
-
-                    // Now you finally can check for a collision
-                    if (Utilities.circlesIntersect(c1, c2)) {
-                        c2.state = CIRCLE_STATE_EXPLODING;
-                        c2.xSpeed = c2.ySpeed = 0;
-                        roundScore++;
-
-                        // For the target sound to work, this needs to be after roundScore++
-                        playEffect();
-                    }
-                }
-            } // end for
-
-            // round over?
-            var isOver = true;
-            for (var i = 0; i < circles.length; i++) {
-                var c = circles[i];
-                if (c.state != CIRCLE_STATE_NORMAL && c.state != CIRCLE_STATE_DONE) {
-                    isOver = false;
-                    break;
-                }
-            } // end for
-
-            if (isOver) {
-
-                if (roundScore < Math.floor(numCircles * PERCENT_CIRCLES_TO_ADVANCE)) {
-                    gameState = GAME_STATE_REPEAT_LEVEL;
-                }
-                else
-                {
-                    totalScore += roundScore;
-
-                    if (numCircles >= NUM_CIRCLES_END) {
-                        gameState = GAME_STATE_END;
-
-                        // Check for a new highscore
-                        if (totalScore > currentHighscore) {
-                            currentHighscore = totalScore;
-                            localStorage.setItem(LOCAL_STORAGE_HIGHSCORE_KEY, currentHighscore);
-                            gotHighscore = true;
-                        }
-                    }
-                    else {
-                        gameState = GAME_STATE_ROUND_OVER;
-                    }
-
-
-                }
-
-                stopAudio();
-            }
-
-        } // end if GAME_STATE_EXPLODING
-    } // end function*/
 
     function drawCircles() {
         if (gameState == GAME_STATE_ROUND_OVER || gameState == GAME_STATE_END || gameState == GAME_STATE_REPEAT_LEVEL)
@@ -703,6 +638,7 @@
             c.ySpeed = randomVector.y;
             c.speed = currentMaxSpeed;
             c.mass = 1.0;
+            c.clicked = false;
 
             //c.fillStyle = getRandomColor();
             c.fillStyle = getRandomLevelColor();
@@ -731,10 +667,6 @@
             update();
             return;
         }
-
-        // You can only click one circle
-        if (gameState == GAME_STATE_EXPLODING)
-            return;
 
         if (gameState == GAME_STATE_ROUND_OVER) {
             gameState = GAME_STATE_DEFAULT;
@@ -765,35 +697,11 @@
         }
 
         var mouse = Utilities.getMouse(e);
-        // Looping through the circle array backwards, why? :O
-        // Because we want the circle drawn last to be clicked, because it is drawn last :o
-        /*for (var i = circles.length - 1; i >= 0; i--) {
-            var c = circles[i];
-            if (Utilities.pointInsideCircle(mouse.x, mouse.y, c)) {
-                circleClicked(c);
-                break; // Just want to click one circle
-            }
-        }*/
-        
-        noCircleClicked(mouse);
+
+        mouseClick(mouse);
     }
 
-
-
-    function circleClicked(circle) {
-
-        // Play the effect sound
-        playEffect();
-
-        /*circle.fillStyle = "red";
-         circle.xSpeed = circle.ySpeed = 0;*/
-        circle.state = CIRCLE_STATE_EXPLODING;
-        circle.xSpeed = circle.ySpeed = 0;
-        gameState = GAME_STATE_EXPLODING;
-        roundScore++;
-    }
-    
-    function noCircleClicked(mouse) {
+    function mouseClick(mouse) {
         playEffect();
 
         var c = {};
@@ -808,9 +716,13 @@
         c.state = CIRCLE_STATE_EXPLODING;
         c.move = _circleMove;
         c.lifetime = 0;
+        c.mass = 1.0;
+        c.clicked = false;
         circles.push(c);
 
-        gameState = GAME_STATE_EXPLODING;
+        for (var i = 0; i < circles.length; i++) {
+            circles[i].clicked = true;
+        }
     };
 
 
