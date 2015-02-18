@@ -83,7 +83,83 @@
             winMessage: "Okay, maybe I lied.",
             loseMessage: "Why not try again?",
             baseColor: "#19E7FF",
-            startRadius: 23
+            startRadius: 23, 
+            circles: [
+                // North Pair
+                {
+                    x: CANVAS_WIDTH/2 - 23/2, 
+                    y: CANVAS_HEIGHT/2 - 23/2 - CANVAS_HEIGHT/4,
+                    color: "green"
+                }, 
+                {
+                    x: CANVAS_WIDTH/2 - 23/2, 
+                    y: CANVAS_HEIGHT/2 - 23/2 - CANVAS_HEIGHT/6
+                }, 
+                // South Pair
+                {
+                    x: CANVAS_WIDTH/2 - 23/2, 
+                    y: CANVAS_HEIGHT/2 - 23/2 + CANVAS_HEIGHT/4,
+                    color: "yellow"
+                }, 
+                {
+                    x: CANVAS_WIDTH/2 - 23/2, 
+                    y: CANVAS_HEIGHT/2 - 23/2 + CANVAS_HEIGHT/6
+                }, 
+                // East Pair
+                {
+                    x: CANVAS_WIDTH/2 - 23/2 - CANVAS_WIDTH/4, 
+                    y: CANVAS_HEIGHT/2 - 23/2,
+                    color: "red"
+                }, 
+                {
+                    x: CANVAS_WIDTH/2 - 23/2 - CANVAS_WIDTH/6, 
+                    y: CANVAS_HEIGHT/2 - 23/2
+                }, 
+                // West Pair
+                {
+                    x: CANVAS_WIDTH/2 - 23/2 + CANVAS_WIDTH/4, 
+                    y: CANVAS_HEIGHT/2 - 23/2, 
+                    color: "blue"
+                }, 
+                {
+                    x: CANVAS_WIDTH/2 - 23/2 + CANVAS_WIDTH/6, 
+                    y: CANVAS_HEIGHT/2 - 23/2
+                }, 
+            ], 
+            walls: [
+                {
+                    x1: CANVAS_WIDTH/7, 
+                    y1: CANVAS_HEIGHT/2 - CANVAS_HEIGHT / 8,
+                    x2: CANVAS_WIDTH/2.5, 
+                    y2: CANVAS_HEIGHT/2 - CANVAS_HEIGHT / 8, 
+                    autoReflectX: true, 
+                    autoReflectY: true, 
+                    autoReflectAll: true
+                }, 
+                {
+                    x1: CANVAS_WIDTH/7, 
+                    y1: CANVAS_HEIGHT/2 - CANVAS_HEIGHT / 8,
+                    x2: CANVAS_WIDTH/7, 
+                    y2: CANVAS_HEIGHT - (CANVAS_HEIGHT/2 - CANVAS_HEIGHT / 8), 
+                    autoReflectX: true
+                }, 
+                {
+                    x1: CANVAS_WIDTH/2.5, 
+                    y1: CANVAS_HEIGHT/2 - CANVAS_HEIGHT / 8, 
+                    x2: CANVAS_WIDTH/2.5, 
+                    y2: CANVAS_HEIGHT / 8, 
+                    autoReflectX: true, 
+                    autoReflectY: true, 
+                    autoReflectAll: true
+                }, 
+                {
+                    x1: CANVAS_WIDTH/2.5, 
+                    y1: CANVAS_HEIGHT / 8, 
+                    x2: CANVAS_WIDTH - (CANVAS_WIDTH/2.5), 
+                    y2: CANVAS_HEIGHT / 8, 
+                    autoReflectY: true
+                }
+            ]
        },
         // 15
         {
@@ -268,8 +344,14 @@
         if (level.implosionSpeed) {
             currentImplosionSpeed = level.implosionSpeed;
         }
-
-        circles = makeCircles(numCircles);
+        
+        if (level.circles) {
+            circles = spawnCircles(level.circles);
+        }
+        else
+        {
+            circles = makeCircles(numCircles);
+        }
     }
 
     function stopAudio() {
@@ -377,9 +459,12 @@
                         }
 
                         else if (c2.state == CIRCLE_STATE_EXPLODING && c1.clicked == true) {
+                            console.log("Ex2");
                             //calculate their new velocities
                             var newVelX = ((c1.xSpeed * (c1.mass - c2.mass)) + (2 * c2.mass * -c1.xSpeed)) / (c1.mass + c2.mass);
                             var newVelY = ((c1.ySpeed * (c1.mass - c2.mass)) + (2 * c2.mass * -c1.ySpeed)) / (c1.mass + c2.mass);
+                            
+                            console.log("x: " + newVelX + " y: " + newVelY);
 
                             c1.xSpeed = newVelX;
                             c1.ySpeed = newVelY;
@@ -467,6 +552,52 @@
             ctx.fill();
         }
     }
+    
+    function drawWalls() {
+        var level = levels[currentLevel];
+        if (level.walls) {
+            var walls = level.walls;
+            
+            for (var i = 0; i < walls.length; i++) {
+                
+                var wall = walls[i];
+                
+                //console.log("draw wall");
+                
+                ctx.beginPath();
+                ctx.moveTo(wall.x1, wall.y1);
+                ctx.lineTo(wall.x2, wall.y2);
+                ctx.closePath();
+                ctx.strokeStyle = "white";
+                ctx.stroke();
+                
+                if (wall.autoReflectX) {
+                    ctx.beginPath();
+                    ctx.moveTo(CANVAS_WIDTH - wall.x1, wall.y1);
+                    ctx.lineTo(CANVAS_WIDTH - wall.x2, wall.y2);
+                    ctx.closePath();
+                    ctx.strokeStyle = "white";
+                    ctx.stroke();
+                }
+                if (wall.autoReflectY) {
+                    ctx.beginPath();
+                    ctx.moveTo(wall.x1, CANVAS_HEIGHT - wall.y1);
+                    ctx.lineTo(wall.x2, CANVAS_HEIGHT - wall.y2);
+                    ctx.closePath();
+                    ctx.strokeStyle = "white";
+                    ctx.stroke();
+                }
+                if (wall.autoReflectAll) {
+                    ctx.beginPath();
+                    ctx.moveTo(CANVAS_WIDTH - wall.x1, CANVAS_HEIGHT - wall.y1);
+                    ctx.lineTo(CANVAS_WIDTH - wall.x2, CANVAS_HEIGHT - wall.y2);
+                    ctx.closePath();
+                    ctx.strokeStyle = "white";
+                    ctx.stroke();
+                }
+            }
+        }
+    }
 
     function drawHUD() {
         // draw score
@@ -477,7 +608,9 @@
         var goalCircles = (Math.floor(numCircles * PERCENT_CIRCLES_TO_ADVANCE));
         var level = levels[currentLevel];
 
-        drawText("This Round: " + roundScore + "/" + goalCircles + " of " + numCircles, 10, 20, 16, "#ddd");
+        //drawText("This Round: " + roundScore + "/" + goalCircles + " of " + numCircles, 10, 20, 16, "#ddd");
+        //TODO: Add new display text
+        
         drawText("Total Score: " + totalScore, CANVAS_WIDTH - 170, 20, 16, "#ddd");
 
         ctx.save();
@@ -490,8 +623,8 @@
             ctx.save();
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
-            drawText("To begin, click a circle.", CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2, fontSize, "white");
-            drawText("I promise it won't explode.", CANVAS_WIDTH / 2, (CANVAS_HEIGHT / 2) + 35, fontSize, "white");
+            drawText("To begin, click anywhere on the screen.", CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2, fontSize, "white");
+            drawText("I wonder what will happen!", CANVAS_WIDTH / 2, (CANVAS_HEIGHT / 2) + 35, fontSize, "white");
             ctx.restore();
         } // end if
 
@@ -556,6 +689,8 @@
         moveCircles(dt);
 
         // Check for collisions
+        
+        // TODO: Check for collisions with level walls
         checkForCollisions();
 
         // Draw the background
@@ -565,6 +700,9 @@
         // Draw the circles
         ctx.globalAlpha = 0.9;
         drawCircles();
+        
+        // Draw the walls
+        drawWalls();
 
         // Draw the HUD
         ctx.globalAlpha = 1.0;
@@ -622,6 +760,51 @@
         // Return the new color
         return color;
     }
+    
+    function spawnCircles(circles) {
+        var array = [];
+        var currentColor;
+        for (var i = 0; i < circles.length; i++) {
+            var c = {};
+            //c.x = Utilities.getRandom(currentStartRadius * 2, CANVAS_WIDTH - currentStartRadius * 2);
+            //c.y = Utilities.getRandom(currentStartRadius * 2, CANVAS_HEIGHT - currentStartRadius * 2);
+            
+            c.x = circles[i].x;
+            c.y = circles[i].y;
+            
+            c.radius = currentStartRadius;
+            //c.xSpeed = Utilities.getRandom(-currentMaxSpeed, currentMaxSpeed);
+            //c.ySpeed = Utilities.getRandom(-currentMaxSpeed, currentMaxSpeed);
+
+            /*var randomVector = Utilities.getRandomUnitVector();
+            c.xSpeed = randomVector.x;
+            c.ySpeed = randomVector.y;
+            c.speed = currentMaxSpeed;*/
+            
+            c.xSpeed = 0;
+            c.ySpeed = 0;
+            c.speed = 0;
+            c.mass = 1.0;
+            c.clicked = false;
+
+            //c.fillStyle = getRandomColor();
+            if (i % 2 === 0)
+            {
+                currentColor = getRandomLevelColor();
+            }
+            if (circles[i].color) {
+                currentColor = circles[i].color;
+            }
+            c.fillStyle = currentColor;
+            
+            
+            c.state = CIRCLE_STATE_NORMAL;
+            c.lifetime = 0;
+            c.move = _circleMove;
+            array.push(c);
+        }
+        return array;
+    }
 
     function makeCircles(num) {
         var array = [];
@@ -666,6 +849,10 @@
             paused = false;
             update();
             return;
+        }
+        
+        if (gameState == GAME_STATE_BEGIN) {
+            gameState = GAME_STATE_DEFAULT;
         }
 
         if (gameState == GAME_STATE_ROUND_OVER) {
