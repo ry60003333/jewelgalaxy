@@ -87,43 +87,43 @@
             circles: [
                 // North Pair
                 {
-                    x: CANVAS_WIDTH/2 - 23/2, 
-                    y: CANVAS_HEIGHT/2 - 23/2 - CANVAS_HEIGHT/4,
+                    x: CANVAS_WIDTH/2, 
+                    y: CANVAS_HEIGHT/2 - CANVAS_HEIGHT/3.5,
                     color: "green"
                 }, 
                 {
-                    x: CANVAS_WIDTH/2 - 23/2, 
-                    y: CANVAS_HEIGHT/2 - 23/2 - CANVAS_HEIGHT/6
+                    x: CANVAS_WIDTH/2, 
+                    y: CANVAS_HEIGHT/2 - CANVAS_HEIGHT/6
                 }, 
                 // South Pair
                 {
-                    x: CANVAS_WIDTH/2 - 23/2, 
-                    y: CANVAS_HEIGHT/2 - 23/2 + CANVAS_HEIGHT/4,
+                    x: CANVAS_WIDTH/2, 
+                    y: CANVAS_HEIGHT/2 + CANVAS_HEIGHT/3.5,
                     color: "yellow"
                 }, 
                 {
-                    x: CANVAS_WIDTH/2 - 23/2, 
-                    y: CANVAS_HEIGHT/2 - 23/2 + CANVAS_HEIGHT/6
+                    x: CANVAS_WIDTH/2, 
+                    y: CANVAS_HEIGHT/2 + CANVAS_HEIGHT/6
                 }, 
                 // East Pair
                 {
-                    x: CANVAS_WIDTH/2 - 23/2 - CANVAS_WIDTH/4, 
-                    y: CANVAS_HEIGHT/2 - 23/2,
+                    x: CANVAS_WIDTH/2 - CANVAS_WIDTH/4, 
+                    y: CANVAS_HEIGHT/2,
                     color: "red"
                 }, 
                 {
-                    x: CANVAS_WIDTH/2 - 23/2 - CANVAS_WIDTH/6, 
-                    y: CANVAS_HEIGHT/2 - 23/2
+                    x: CANVAS_WIDTH/2 - CANVAS_WIDTH/6, 
+                    y: CANVAS_HEIGHT/2
                 }, 
                 // West Pair
                 {
-                    x: CANVAS_WIDTH/2 - 23/2 + CANVAS_WIDTH/4, 
-                    y: CANVAS_HEIGHT/2 - 23/2, 
+                    x: CANVAS_WIDTH/2 + CANVAS_WIDTH/4, 
+                    y: CANVAS_HEIGHT/2, 
                     color: "blue"
                 }, 
                 {
-                    x: CANVAS_WIDTH/2 - 23/2 + CANVAS_WIDTH/6, 
-                    y: CANVAS_HEIGHT/2 - 23/2
+                    x: CANVAS_WIDTH/2 + CANVAS_WIDTH/6, 
+                    y: CANVAS_HEIGHT/2
                 }, 
             ], 
             walls: [
