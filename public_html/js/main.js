@@ -12,6 +12,7 @@
     var canvas, ctx;
     //var x, y, radius, xSpeed, ySpeed, fillStyle;
     var circles = [];
+    var currentCircle;
     var paused = false;
     var animationID;
 
@@ -29,9 +30,8 @@
 
     // Circle states
     var CIRCLE_STATE_NORMAL = 0;
-    var CIRCLE_STATE_EXPLODING = 1;
-    var CIRCLE_STATE_IMPLODING = 2;
-    var CIRCLE_STATE_DONE = 3;
+    var CIRCLE_STATE_IMPLODING = 1;
+    var CIRCLE_STATE_DONE = 2;
 
     // Game states
     var GAME_STATE_BEGIN = 0;
@@ -254,8 +254,6 @@
     window.onload = init;
 
     function init() {
-        console.log("Init called.");
-
         // Setup the canvas
         canvas = document.querySelector("canvas");
         ctx = canvas.getContext("2d");
@@ -302,6 +300,8 @@
         }
 
         canvas.onmousedown = doMousedown;
+        canvas.onmouseup = doMouseup;
+        canvas.onmousemove = doMousemove;
 
         update();
     }
@@ -396,20 +396,10 @@
                 continue;
             }
 
-            if (c.state === CIRCLE_STATE_EXPLODING) {
-                c.radius += currentExplosionSpeed * dt;
-                if (c.radius >= currentMaxRadius) {
-                    c.state = CIRCLE_STATE_DONE;
-                    console.log("circle #" + i + " hit currentMaxRadius");
-                }
-                continue;
-            }
-
             if (c.state === CIRCLE_STATE_IMPLODING) {
                 c.radius -= currentImplosionSpeed * dt;
                 if (c.radius <= currentMinRadius) {
                     c.state = CIRCLE_STATE_DONE;
-                    console.log("circle #" + i + " hit currentMinRadius and is gone");
                 }
                 continue;
             }
@@ -445,34 +435,16 @@
                         continue;
 
                     //if two circles are colliding...
-                    if (Utilities.circlesIntersect(c1, c2)) {
+                    if (Utilities.circlesIntersect(c1, c2) && c1.state == CIRCLE_STATE_NORMAL && c2.state == CIRCLE_STATE_NORMAL) {
 
-                        if (c1.state == CIRCLE_STATE_EXPLODING && c2.clicked == true) {
-                            //calculate their new velocities
-                            var newVelX = ((c2.xSpeed * (c2.mass - c1.mass)) + (2 * c1.mass * -c2.xSpeed)) / (c1.mass + c2.mass);
-                            var newVelY = ((c2.ySpeed * (c2.mass - c1.mass)) + (2 * c1.mass * -c2.ySpeed)) / (c1.mass + c2.mass);
-
-                            c2.xSpeed = newVelX;
-                            c2.ySpeed = newVelY;
-
-                            c2.clicked = false;
+                        //if they share the same color, clear them
+                        if (c1.fillStyle == c2.fillStyle) {
+                            c1.state = CIRCLE_STATE_IMPLODING;
+                            c2.state = CIRCLE_STATE_IMPLODING;
                         }
 
-                        else if (c2.state == CIRCLE_STATE_EXPLODING && c1.clicked == true) {
-                            console.log("Ex2");
-                            //calculate their new velocities
-                            var newVelX = ((c1.xSpeed * (c1.mass - c2.mass)) + (2 * c2.mass * -c1.xSpeed)) / (c1.mass + c2.mass);
-                            var newVelY = ((c1.ySpeed * (c1.mass - c2.mass)) + (2 * c2.mass * -c1.ySpeed)) / (c1.mass + c2.mass);
-                            
-                            console.log("x: " + newVelX + " y: " + newVelY);
-
-                            c1.xSpeed = newVelX;
-                            c1.ySpeed = newVelY;
-
-                            c1.clicked = false;
-                        }
-
-                        else if (c1.state == CIRCLE_STATE_NORMAL && c2.state == CIRCLE_STATE_NORMAL) {
+                        //otherwise do collisions
+                        else {
                             //calculate their new velocities
                             var newVelX1 = ((c1.xSpeed * (c1.mass - c2.mass)) + (2 * c2.mass * c2.xSpeed)) / (c1.mass + c2.mass);
                             var newVelY1 = ((c1.ySpeed * (c1.mass - c2.mass)) + (2 * c2.mass * c2.ySpeed)) / (c1.mass + c2.mass);
@@ -783,9 +755,8 @@
             
             c.xSpeed = 0;
             c.ySpeed = 0;
-            c.speed = 0;
-            c.mass = 1.0;
-            c.clicked = false;
+            c.speed = currentMaxSpeed;
+            c.mass = Utilities.getRandom(0.9, 1.1);
 
             //c.fillStyle = getRandomColor();
             if (i % 2 === 0)
@@ -796,7 +767,6 @@
                 currentColor = circles[i].color;
             }
             c.fillStyle = currentColor;
-            
             
             c.state = CIRCLE_STATE_NORMAL;
             c.lifetime = 0;
@@ -820,8 +790,7 @@
             c.xSpeed = randomVector.x;
             c.ySpeed = randomVector.y;
             c.speed = currentMaxSpeed;
-            c.mass = 1.0;
-            c.clicked = false;
+            c.mass = Utilities.getRandom(0.9, 1.1);
 
             //c.fillStyle = getRandomColor();
             c.fillStyle = getRandomLevelColor();
@@ -837,6 +806,9 @@
     var _circleMove = function (dt) {
         this.x += this.xSpeed * this.speed * dt;
         this.y += this.ySpeed * this.speed * dt;
+
+        this.xSpeed *= 0.99;
+        this.ySpeed *= 0.99;
     }
 
     function doMousedown(e) {
@@ -885,33 +857,38 @@
 
         var mouse = Utilities.getMouse(e);
 
-        mouseClick(mouse);
+        for (var i = circles.length - 1; i >= 0; i--) {
+            var c = circles[i];
+            if (Utilities.pointInsideCircle(mouse.x, mouse.y, c)) {
+                currentCircle = i;
+                break;
+            }
+        }
     }
 
-    function mouseClick(mouse) {
-        playEffect();
+    function doMouseup(e) {
+        var mouse = Utilities.getMouse(e);
+        circles[currentCircle].xSpeed = (circles[currentCircle].x - mouse.x) * 0.05;
+        circles[currentCircle].ySpeed = (circles[currentCircle].y - mouse.y) * 0.05;
 
-        var c = {};
-        c.x = mouse.x;
-        c.y = mouse.y;
-        c.xSpeed = 0;
-        c.ySpeed = 0;
-        c.speed = currentMaxSpeed;
-        c.radius = currentStartRadius;
-        //TODO: Change color to match level
-        c.fillStyle = Utilities.getRandomColor();
-        c.state = CIRCLE_STATE_EXPLODING;
-        c.move = _circleMove;
-        c.lifetime = 0;
-        c.mass = 1.0;
-        c.clicked = false;
-        circles.push(c);
-
-        for (var i = 0; i < circles.length; i++) {
-            circles[i].clicked = true;
+        if (currentCircle != null) {
+            currentCircle == null;
         }
-    };
+    }
 
+    function doMousemove(e) {
+        var mouse = Utilities.getMouse(e);
 
+        if (currentCircle != null) {
 
+            //Dunno why this isn't working
+
+            ctx.beginPath();
+            ctx.moveTo(mouse.x, mouse.y);
+            ctx.lineTo(circles[currentCircle].x, circles[currentCircle].y);
+            ctx.closePath();
+            ctx.strokeStyle = "white";
+            ctx.stroke();
+        }
+    }
 }());
