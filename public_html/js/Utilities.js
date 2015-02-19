@@ -80,6 +80,12 @@ window.Utilities = (function () {
 
     // Color utilties
     // Source: http://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
+    
+    /**
+     * Converts a hex color to RGB components.
+     * @param {String} hex The hex color.
+     * @returns {Object} The RGB components as an object.
+     */
     Utilities.hexToRgb = function (hex) {
         // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
         var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
@@ -95,8 +101,37 @@ window.Utilities = (function () {
         } : null;
     };
 
+    /**
+     * Convert an RGB color to hex.
+     * @param {Numver} r The red component.
+     * @param {Numver} g The green component.
+     * @param {Numver} b The blue component.
+     * @returns {String} The hex string.
+     */
     Utilities.rgbToHex = function (r, g, b) {
         return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+    };
+    
+    /**
+     * 
+     * @param {type} x
+     * @param {type} y
+     * @param {type} radius
+     * @returns {Boolean}
+     */
+    Utilities.circleHitLeftRight = function(x, y, radius) {
+        return (x < radius || x > Constants.CANVAS_WIDTH - radius);
+    };
+
+    /**
+     * 
+     * @param {type} x
+     * @param {type} y
+     * @param {type} radius
+     * @returns {Boolean}
+     */
+    Utilities.circleHitTopBottom = function(x, y, radius) {
+        return (y < radius || y > Constants.CANVAS_HEIGHT - radius);
     };
     
     return Utilities;
