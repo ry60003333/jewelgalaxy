@@ -42,9 +42,8 @@ window.Constants = (function () {
     Constants.GAME_STATE_REPEAT_LEVEL = 4;
 
     // Number stuff
-    Constants.NUM_CIRCLES_START = 10;
-    Constants.NUM_CIRCLES_LEVEL_INCREASE = 5;
-    Constants.NUM_CIRCLES_END = 60;
+    Constants.NUM_CIRCLES_START = 8;
+    Constants.NUM_CIRCLES_LEVEL_INCREASE = 2;
     Constants.PERCENT_CIRCLES_TO_ADVANCE = 0.3;
     Constants.LOCAL_STORAGE_HIGHSCORE_KEY = "highscore";
     

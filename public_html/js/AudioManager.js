@@ -18,7 +18,7 @@ window.AudioManager = (function () {
         this.targetAudio = null;
         this.currentEffect = 0;
         this.currentDirection = 1;
-        this.effectSounds = ["1.mp3", "2.mp3", "3.mp3", "4.mp3", "5.mp3", "6.mp3", "7.mp3", "8.mp3"];
+        this.effectSounds = [/*"1.mp3", "2.mp3", "3.mp3", "4.mp3", "5.mp3", "6.mp3", "7.mp3", "8.mp3"*/ "jewel.mp3"];
         this.metTargetSound = "level-complete.mp3";
     }
     
@@ -28,9 +28,9 @@ window.AudioManager = (function () {
      */
     AudioManager.prototype.init = function() {
         this.bgAudio = document.querySelector("#bgAudio");
-        this.bgAudio.volume = 0.25;
+        this.bgAudio.volume = 0.4;
         this.effectAudio = document.querySelector("#effectAudio");
-        this.effectAudio.volume = 0.3;
+        this.effectAudio.volume = 0.05;
         this.targetAudio = document.querySelector("#targetAudio");
         this.targetAudio.volume = 0.4;
     };
@@ -51,6 +51,15 @@ window.AudioManager = (function () {
         this.bgAudio.pause();
         this.bgAudio.currentTime = 0;
     };
+    
+    /**
+     * Play the wall hit effect sound.
+     * @returns {undefined}
+     */
+    AudioManager.prototype.playWallEffect = function() {
+        this.effectAudio.src = "media/hit_wall.mp3";
+        this.effectAudio.play();
+    };
 
     /**
      * Play a circle sound effect.
@@ -60,18 +69,18 @@ window.AudioManager = (function () {
      */
     AudioManager.prototype.playEffect = function(roundScore, numCircles) {
 
-        if (roundScore === Math.floor(numCircles * Constants.PERCENT_CIRCLES_TO_ADVANCE)) {
+        /*if (roundScore === Math.floor(numCircles * Constants.PERCENT_CIRCLES_TO_ADVANCE)) {
             this.targetAudio.src = "media/" + metTargetSound;
             this.targetAudio.play();
             return;
-        }
+        }*/
 
         this.effectAudio.src = "media/" + this.effectSounds[this.currentEffect];
         this.effectAudio.play();
 
         this.currentEffect = this.currentEffect + this.currentDirection;
         if (this.currentEffect === this.effectSounds.length || this.currentEffect === -1) {
-            currentDirection *= -1;
+            this.currentDirection *= -1;
             this.currentEffect = this.currentEffect + this.currentDirection;
         }
     };

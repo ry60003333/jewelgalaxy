@@ -41,11 +41,13 @@ window.GameEngine = (function () {
 
         // More variables!
         this.gameState = Constants.GAME_STATE_BEGIN;
-        this.currentLevel = -1;
+        this.currentLevel = -1; // -1
         this.currentWalls = [];
+        this.currentMoveCount = 0;
         this.roundScore;
         this.totalScore = 0;
         this.lastTime = 0;
+        this.lastBonus = 0;
         this.currentHighscore = 0;
         this.gotHighscore = false;
         this.lastMouseX = 0;
@@ -150,9 +152,10 @@ window.GameEngine = (function () {
     GameEngine.prototype.startNextLevel = function() {
         this.currentLevel++;
         this.currentWalls = [];
+        this.currentMoveCount = 0;
         this.numCircles += Constants.NUM_CIRCLES_LEVEL_INCREASE;
         this.roundScore = 0;
-
+        this.lastBonus = 0;
 
         // Reset circle data
         this.currentStartRadius = Constants.DEFAULT_START_RADIUS;
@@ -192,7 +195,7 @@ window.GameEngine = (function () {
         }
         else
         {
-            this.circles = this.makeCircles(numCircles);
+            this.circles = this.makeCircles(this.numCircles);
         }
         
         // Add left right edge wall
@@ -340,11 +343,12 @@ window.GameEngine = (function () {
      */
     GameEngine.prototype.makeCircles = function(count) {
         var array = [];
+        var currentColor = null;
         for (var i = 0; i < count; i++) {
             var c = {};
             c.x = Utilities.getRandom(this.currentStartRadius * 2, Constants.CANVAS_WIDTH - this.currentStartRadius * 2);
             c.y = Utilities.getRandom(this.currentStartRadius * 2, Constants.CANVAS_HEIGHT - this.currentStartRadius * 2);
-            c.radius = currentStartRadius;
+            c.radius = this.currentStartRadius;
 
             var randomVector = Utilities.getRandomUnitVector();
             c.xSpeed = randomVector.x;
@@ -353,7 +357,11 @@ window.GameEngine = (function () {
             c.mass = Utilities.getRandom(0.9, 1.1);
 
             //c.fillStyle = getRandomColor();
-            c.fillStyle = getRandomLevelColor();
+            if (i % 2 === 0)
+            {
+                currentColor = this.getRandomLevelColor();
+            }
+            c.fillStyle = currentColor;
             c.state = Constants.CIRCLE_STATE_NORMAL;
             c.lifetime = 0;
             c.move = GameEngine.prototype._circleMove;
@@ -373,15 +381,18 @@ window.GameEngine = (function () {
         var baseColor = Utilities.hexToRgb(level.baseColor);
 
         // Define the maximum delta for the color
-        var maxDelta = 100;
+        var minDelta = 50;
+        var maxDelta = 250;
 
         // Change the color
-        baseColor.r = Utilities.clamp(baseColor.r + Math.floor(Utilities.getRandom(-maxDelta, maxDelta)), 0, 255);
-        baseColor.g = Utilities.clamp(baseColor.g + Math.floor(Utilities.getRandom(-maxDelta, maxDelta)), 0, 255);
-        baseColor.b = Utilities.clamp(baseColor.b + Math.floor(Utilities.getRandom(-maxDelta, maxDelta)), 0, 255);
+        baseColor.r = Utilities.clamp(baseColor.r + Math.floor(Utilities.randomWithMin(-maxDelta, maxDelta, minDelta)), 0, 255);
+        baseColor.g = Utilities.clamp(baseColor.g + Math.floor(Utilities.randomWithMin(-maxDelta, maxDelta, minDelta)), 0, 255);
+        baseColor.b = Utilities.clamp(baseColor.b + Math.floor(Utilities.randomWithMin(-maxDelta, maxDelta, minDelta)), 0, 255);
 
+        var alpha = 1.0; // 0.5 before
+        
         // Create the new color
-        var color = 'rgba(' + baseColor.r + ',' + baseColor.g + ',' + baseColor.b + ',0.50)';
+        var color = 'rgba(' + baseColor.r + ',' + baseColor.g + ',' + baseColor.b + ',' + alpha + ')';
 
         // Return the new color
         return color;
@@ -461,6 +472,8 @@ window.GameEngine = (function () {
         if (engine.currentCircleIndex === -1) {
             return;
         }
+        
+        engine.currentMoveCount++;
         
         var mouse = Utilities.getMouse(e);
         var currentCircle = engine.circles[engine.currentCircleIndex];
@@ -553,10 +566,12 @@ window.GameEngine = (function () {
 
         //drawText("This Round: " + roundScore + "/" + goalCircles + " of " + numCircles, 10, 20, 16, "#ddd");
         //TODO: Add new display text
+        this.drawText("Moves Used: " + this.currentMoveCount, 10, 20, 16, "#ddd");
         
         var ctx = this.ctx;
         
         this.drawText("Total Score: " + this.totalScore, Constants.CANVAS_WIDTH - 170, 20, 16, "#ddd");
+        this.drawText("This Round:  " + this.roundScore, Constants.CANVAS_WIDTH - 170, 40, 16, "#ddd");
 
         ctx.save();
         ctx.textAlign = "center";
@@ -577,9 +592,10 @@ window.GameEngine = (function () {
             ctx.save();
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
-            this.drawText("Round Complete - " + level.winMessage, Constants.CANVAS_WIDTH / 2, Constants.CANVAS_HEIGHT / 2 - 40, fontSize, "green");
-            this.drawText("Click to continue", Constants.CANVAS_WIDTH / 2, Constants.CANVAS_HEIGHT / 2, fontSize, "blue");
-            this.drawText("Next round there are " + (numCircles + Constants.NUM_CIRCLES_LEVEL_INCREASE) + " circles", Constants.CANVAS_WIDTH / 2, Constants.CANVAS_HEIGHT / 2 + 35, 24, "#ddd");
+            this.drawText("Complete - " + level.winMessage, Constants.CANVAS_WIDTH / 2, Constants.CANVAS_HEIGHT / 2 - 40, fontSize, "green");
+            this.drawText("Bonus: " + this.lastBonus, Constants.CANVAS_WIDTH / 2, Constants.CANVAS_HEIGHT / 2, fontSize, "lightgreen");
+            this.drawText("Click to continue", Constants.CANVAS_WIDTH / 2, Constants.CANVAS_HEIGHT / 2 + 40, fontSize, "blue");
+            //this.drawText("Next round there are " + (numCircles + Constants.NUM_CIRCLES_LEVEL_INCREASE) + " circles", Constants.CANVAS_WIDTH / 2, Constants.CANVAS_HEIGHT / 2 + 35, 24, "#ddd");
 
             ctx.restore();
         } // end if
@@ -589,9 +605,9 @@ window.GameEngine = (function () {
             ctx.save();
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
-            this.drawText("Round Failed - " + level.loseMessage, Constants.CANVAS_WIDTH / 2, Constants.CANVAS_HEIGHT / 2 - 40, fontSize, "red");
+            this.drawText("Failed - " + level.loseMessage, Constants.CANVAS_WIDTH / 2, Constants.CANVAS_HEIGHT / 2 - 40, fontSize, "red");
             this.drawText("Click to retry", Constants.CANVAS_WIDTH / 2, Constants.CANVAS_HEIGHT / 2, fontSize, "red");
-            this.drawText("Goal: " + goalCircles + " of " + numCircles + " circles", Constants.CANVAS_WIDTH / 2, Constants.CANVAS_HEIGHT / 2 + 35, 24, "#ddd");
+            //this.drawText("Goal: " + goalCircles + " of " + numCircles + " circles", Constants.CANVAS_WIDTH / 2, Constants.CANVAS_HEIGHT / 2 + 35, 24, "#ddd");
 
             ctx.restore();
         } // end if
@@ -636,7 +652,6 @@ window.GameEngine = (function () {
      * @returns {undefined}
      */
     GameEngine.prototype.drawWalls = function() {
-        var level = Levels.LEVELS[this.currentLevel];
         var ctx = this.ctx;
         if (this.currentWalls) {
             var walls = this.currentWalls;
@@ -695,6 +710,8 @@ window.GameEngine = (function () {
             ctx.fillStyle = c.fillStyle;
             ctx.fill();*/
             //var halfRadius = c.radius / 2;
+            
+            // Draw an image instead of a circle
             ctx.drawImage(this.jewelImage, c.x - c.radius, c.y - c.radius, c.radius * 2, c.radius * 2);
             
             var prevAlpha = ctx.globalAlpha;
@@ -732,20 +749,8 @@ window.GameEngine = (function () {
 
             // Move the circle
             c.move(dt);
-
-            // Did the circle leave the screen?
-            // TODO: Replace these with invisible walls
-            /*if (Utilities.circleHitLeftRight(c.x, c.y, c.radius))
-            {
-                c.xSpeed *= -1;
-            }
-            if (Utilities.circleHitTopBottom(c.x, c.y, c.radius))
-            {
-                c.ySpeed *= -1;
-            }*/
             
             // Check if the circle hit a wall
-            var level = Levels.LEVELS[this.currentLevel];
             if (this.currentWalls) {
                 var walls = this.currentWalls;
                 for (var w = 0; w < walls.length; w++) {
@@ -756,11 +761,13 @@ window.GameEngine = (function () {
                         if (wall.x1 === wall.x2) {
                             if (c.x <= wall.x1 && c.xSpeed > 0 || c.x >= wall.x1 && c.xSpeed < 0) {
                                 c.xSpeed *= -1;
+                                this.audioManager.playWallEffect();
                             }
                         }
                         else if (wall.y1 === wall.y2) {
                             if (c.y <= wall.y1 && c.ySpeed > 0 || c.y >= wall.y1 && c.ySpeed < 0) {
                                 c.ySpeed *= -1;
+                                this.audioManager.playWallEffect();
                             }
                         }
                         
@@ -801,6 +808,10 @@ window.GameEngine = (function () {
                         if (c1.fillStyle === c2.fillStyle) {
                             c1.state = Constants.CIRCLE_STATE_IMPLODING;
                             c2.state = Constants.CIRCLE_STATE_IMPLODING;
+                            
+                            this.roundScore += (2 * (this.currentLevel + 1));
+                            
+                            this.audioManager.playEffect(this.roundScore, this.circles.length);
                         }
 
                         //otherwise do collisions
@@ -826,44 +837,56 @@ window.GameEngine = (function () {
                 }
             }
         }
-
-        /*
-        // round over?
+        
+        // Check if the level is over
         var isOver = true;
         for (var i = 0; i < circles.length; i++) {
             var c = circles[i];
-            if (c.state != CIRCLE_STATE_NORMAL && c.state != CIRCLE_STATE_DONE) {
+            if (c.state !== Constants.CIRCLE_STATE_DONE) {
                 isOver = false;
                 break;
             }
-        } // end for
+        }
+        
+        if (isOver && this.gameState === Constants.GAME_STATE_DEFAULT) {
 
-        if (isOver) {
-
-            if (roundScore < Math.floor(numCircles * PERCENT_CIRCLES_TO_ADVANCE)) {
-                gameState = GAME_STATE_REPEAT_LEVEL;
+            /*if (this.roundScore < Math.floor(numCircles * PERCENT_CIRCLES_TO_ADVANCE)) {
+                this.gameState = Constants.GAME_STATE_REPEAT_LEVEL;
             }
-            else
+            else*/
+            if (true)
             {
-                totalScore += roundScore;
+                this.totalScore += this.roundScore;
+                
+                // Give some points for using less moves
+                // Plus 6 "free" moves
+                var fewestMoves = (this.circles.length / 2) + 6;
+                var bonus = fewestMoves - this.currentMoveCount;
+                if (bonus < 0) {
+                    bonus = 0;
+                } else {
+                    this.lastBonus = 3 * bonus
+                    this.totalScore += this.lastBonus;
+                }
 
-                if (numCircles >= NUM_CIRCLES_END) {
-                    gameState = GAME_STATE_END;
+                if (this.currentLevel === Levels.LEVELS.length - 1) {
+                    this.gameState = Constants.GAME_STATE_END;
 
                     // Check for a new highscore
-                    if (totalScore > currentHighscore) {
-                        currentHighscore = totalScore;
-                        localStorage.setItem(LOCAL_STORAGE_HIGHSCORE_KEY, currentHighscore);
-                        gotHighscore = true;
+                    if (this.totalScore > this.currentHighscore) {
+                        this.currentHighscore = this.totalScore;
+                        localStorage.setItem(Constants.LOCAL_STORAGE_HIGHSCORE_KEY, this.currentHighscore);
+                        this.gotHighscore = true;
                     }
                 }
                 else {
-                    gameState = GAME_STATE_ROUND_OVER;
+                    this.gameState = Constants.GAME_STATE_ROUND_OVER;
                 }
             }
 
-            stopAudio();
-            */
+            this.audioManager.stopAudio();
+        }
+            
     };
     
     /**

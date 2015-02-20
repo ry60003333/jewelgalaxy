@@ -54,6 +54,24 @@ window.Utilities = (function () {
     Utilities.getRandom = function (min, max) {
         return Math.random() * (max - min) + min;
     };
+    
+    /**
+     * Generate a random number between two values (inclusive).
+     * @param {Number} min The minimum value.
+     * @param {Number} max The maximum value.
+     * @param {Number} minAbs The minimum absolute value.
+     * @returns {Number} The resulting random number.
+     */
+    Utilities.randomWithMin = function(min, max, minAbs) {
+        var value = Math.floor((Math.random()*max)+min);
+        if (value >= 0 && value < minAbs) {
+            value = minAbs;
+        }
+        else if (value < 0 && value > -minAbs) {
+            value = minAbs;
+        }
+        return value;
+    };
 
     /**
      * Returns a random color!
