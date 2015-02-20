@@ -102,7 +102,75 @@ window.Levels = (function () {
                     autoReflectY: true
                 }
             ]
-       },
+        },
+
+        {
+            winMessage: "Great job!",
+            loseMessage: "Try again?",
+            baseColor: "#19E7FF",
+            startRadius: 23,
+            circles: [
+                // East Pair
+                {
+                    x: Constants.CANVAS_WIDTH / 2 - Constants.CANVAS_WIDTH / 4,
+                    y: Constants.CANVAS_HEIGHT / 2,
+                    color: "red"
+                },
+                {
+                    x: Constants.CANVAS_WIDTH / 2,
+                    y: Constants.CANVAS_HEIGHT / 2 + Constants.CANVAS_HEIGHT / 3.5,
+                },
+                // West Pair
+                {
+                    x: Constants.CANVAS_WIDTH / 2 + Constants.CANVAS_WIDTH / 4,
+                    y: Constants.CANVAS_HEIGHT / 2,
+                    color: "blue"
+                },
+                {
+                    x: Constants.CANVAS_WIDTH / 2 + Constants.CANVAS_WIDTH / 6,
+                    y: Constants.CANVAS_HEIGHT / 2
+                },
+            ],
+            walls: [
+                {
+                    x1: Constants.CANVAS_WIDTH / 7,
+                    y1: Constants.CANVAS_HEIGHT / 2 - Constants.CANVAS_HEIGHT / 8,
+                    x2: Constants.CANVAS_WIDTH / 2.5,
+                    y2: Constants.CANVAS_HEIGHT / 2 - Constants.CANVAS_HEIGHT / 8,
+                    autoReflectX: true,
+                    autoReflectY: true,
+                    autoReflectAll: true
+                },
+                {
+                    x1: Constants.CANVAS_WIDTH / 7,
+                    y1: Constants.CANVAS_HEIGHT / 2 - Constants.CANVAS_HEIGHT / 8,
+                    x2: Constants.CANVAS_WIDTH / 7,
+                    y2: Constants.CANVAS_HEIGHT - (Constants.CANVAS_HEIGHT / 2 - Constants.CANVAS_HEIGHT / 8),
+                    autoReflectX: true
+                },
+                {
+                    x1: Constants.CANVAS_WIDTH / 2.5,
+                    y1: Constants.CANVAS_HEIGHT - (Constants.CANVAS_HEIGHT / 2 - Constants.CANVAS_HEIGHT / 8),
+                    x2: Constants.CANVAS_WIDTH / 2.5,
+                    y2: Constants.CANVAS_HEIGHT - (Constants.CANVAS_HEIGHT / 8),
+                    autoReflectX: true
+                },
+                {
+                    x1: Constants.CANVAS_WIDTH / 2.5,
+                    y1: Constants.CANVAS_HEIGHT - (Constants.CANVAS_HEIGHT / 8),
+                    x2: Constants.CANVAS_WIDTH - (Constants.CANVAS_WIDTH / 2.5),
+                    y2: Constants.CANVAS_HEIGHT - (Constants.CANVAS_HEIGHT / 8),
+                },
+                {
+                    x1: Constants.CANVAS_WIDTH / 2.5,
+                    y1: Constants.CANVAS_HEIGHT / 2 - Constants.CANVAS_HEIGHT / 8,
+                    x2: Constants.CANVAS_WIDTH / 2,
+                    y2: Constants.CANVAS_HEIGHT / 2 - Constants.CANVAS_HEIGHT / 8,
+                    autoReflectX: true
+                }
+            ]
+        },
+
         // 15
         {
             winMessage: "Do you like the colors?",

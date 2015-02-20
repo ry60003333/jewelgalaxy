@@ -141,6 +141,10 @@ window.GameEngine = (function () {
         this.canvas.onmouseup = this.handleMouseUp;
         this.canvas.onmousemove = this.handleMouseMove;
 
+        this.canvas.touchstart = this.handleTouchDown;
+        this.canvas.touchend = this.handleMouseUp;
+        this.canvas.touchmove = this.handleTouchMove;
+
         engine.update();
         
     };
@@ -461,11 +465,75 @@ window.GameEngine = (function () {
     };
 
     /**
-     * Handle a mouse up event.
+     * Handle a touch down event.
      * @param {Object} e The event.
      * @returns {undefined}
      */
-    GameEngine.prototype.handleMouseUp = function(e) {
+    GameEngine.prototype.handleTouchDown = function (e) {
+
+        console.log("TOUCHDOWN!");
+
+        var engine = GameEngine.INSTANCE;
+
+        // Play the background music
+        engine.audioManager.startAudio();
+
+        // If paused then unpause
+        if (engine.paused) {
+            engine.paused = false;
+            engine.update();
+            return;
+        }
+
+        if (engine.gameState === Constants.GAME_STATE_BEGIN) {
+            engine.gameState = Constants.GAME_STATE_DEFAULT;
+        }
+
+        if (engine.gameState === Constants.GAME_STATE_ROUND_OVER) {
+            engine.gameState = Constants.GAME_STATE_DEFAULT;
+            engine.startNextLevel();
+            return;
+        }
+
+        if (engine.gameState === Constants.GAME_STATE_END) {
+
+            // Reset everything!
+            engine.gameState = Constants.GAME_STATE_DEFAULT;
+            engine.totalScore = 0;
+            engine.numCircles = Constants.NUM_CIRCLES_START - Constants.NUM_CIRCLES_LEVEL_INCREASE;
+            engine.currentLevel = -1;
+            engine.gotHighscore = false;
+            engine.startNextLevel();
+            return;
+        }
+
+        if (engine.gameState === Constants.GAME_STATE_REPEAT_LEVEL) {
+            engine.gameState = Constants.GAME_STATE_DEFAULT;
+
+            // Return to the previous level
+            engine.currentLevel--;
+            engine.numCircles -= Constants.NUM_CIRCLES_LEVEL_INCREASE;
+            engine.startNextLevel();
+            return;
+        }
+
+        for (var i = engine.circles.length - 1; i >= 0; i--) {
+            var c = engine.circles[i];
+            if (Utilities.pointInsideCircle(e.pageX, e.pageY, c)) {
+                engine.currentCircleIndex = i;
+                break;
+            }
+        }
+    };
+
+    /**
+     * Handle a mouse up and touch up event.
+     * @param {Object} e The event.
+     * @returns {undefined}
+     */
+    GameEngine.prototype.handleMouseUp = function (e) {
+
+        console.log("TOUCHUP!");
         
         var engine = GameEngine.INSTANCE;
         
@@ -477,8 +545,8 @@ window.GameEngine = (function () {
         
         var mouse = Utilities.getMouse(e);
         var currentCircle = engine.circles[engine.currentCircleIndex];
-        currentCircle.xSpeed = (currentCircle.x - mouse.x) * 0.05;
-        currentCircle.ySpeed = (currentCircle.y - mouse.y) * 0.05;
+        currentCircle.xSpeed = Utilities.clamp((currentCircle.x - mouse.x) * 0.05, -20, 20);
+        currentCircle.ySpeed = Utilities.clamp((currentCircle.y - mouse.y) * 0.05, -20, 20);
 
         engine.currentCircleIndex = -1;
     };
@@ -488,7 +556,7 @@ window.GameEngine = (function () {
      * @param {Object} e The event.
      * @returns {undefined}
      */
-    GameEngine.prototype.handleMouseMove = function(e) {
+    GameEngine.prototype.handleMouseMove = function (e) {
         
         var engine = GameEngine.INSTANCE;
         
@@ -496,6 +564,21 @@ window.GameEngine = (function () {
 
         engine.lastMouseX = mouse.x;
         engine.lastMouseY = mouse.y;
+    };
+
+    /**
+     * Handle a touch move event.
+     * @param {Object} e The event.
+     * @returns {undefined}
+     */
+    GameEngine.prototype.handleTouchMove = function (e) {
+
+        console.log("TOUCHMOVE!");
+
+        var engine = GameEngine.INSTANCE;
+
+        engine.lastMouseX = e.pageX;
+        engine.lastMouseY = e.pageY;
     };
     
     /**
