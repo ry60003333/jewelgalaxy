@@ -42,6 +42,7 @@ window.GameEngine = (function () {
         // More variables!
         this.gameState = Constants.GAME_STATE_BEGIN;
         this.currentLevel = -1;
+        this.currentWalls = [];
         this.roundScore;
         this.totalScore = 0;
         this.lastTime = 0;
@@ -50,7 +51,14 @@ window.GameEngine = (function () {
         this.lastMouseX = 0;
         this.lastMouseY = 0;
         
+        // Managers and loaders and drawers
         this.audioManager = new AudioManager();
+        this.assetLoader = new AssetLoader();
+        this.arrowDrawer = new ArrowDrawer();
+        
+        // Image assets
+        this.backgroundImage = new Image();
+        this.jewelImage = new Image();
 
     }
     
@@ -60,10 +68,29 @@ window.GameEngine = (function () {
     GameEngine.INSTANCE = null;
     
     /**
+     * Initialize the loading of the game.
+     * @returns {undefined}
+     */
+    GameEngine.prototype.initLoading = function() {
+        
+        // Grab the asset loader
+        var assetLoader = this.assetLoader;
+        
+        // Load the background image
+        assetLoader.addImage(this.backgroundImage, "images/background.png");
+        assetLoader.addImage(this.jewelImage, "images/topaz.png");
+        
+        // When loading is complete, start the game
+        assetLoader.load(function() {
+            GameEngine.INSTANCE.initGame();
+        });
+    };
+    
+    /**
      * Initialize the engine.
      * @returns {undefined}
      */
-    GameEngine.prototype.init = function() {
+    GameEngine.prototype.initGame = function() {
         
         // Setup the canvas
         this.canvas = document.querySelector("canvas");
@@ -122,6 +149,7 @@ window.GameEngine = (function () {
      */
     GameEngine.prototype.startNextLevel = function() {
         this.currentLevel++;
+        this.currentWalls = [];
         this.numCircles += Constants.NUM_CIRCLES_LEVEL_INCREASE;
         this.roundScore = 0;
 
@@ -165,6 +193,71 @@ window.GameEngine = (function () {
         else
         {
             this.circles = this.makeCircles(numCircles);
+        }
+        
+        // Add left right edge wall
+        var edgeWallRightLeft = {
+            x1: 0, 
+            y1: 0, 
+            x2: 0,
+            y2: Constants.CANVAS_HEIGHT, 
+            autoReflectX: true
+        };
+        this.addWallsFrom(edgeWallRightLeft);
+        
+        // Add top bottom edge wall
+        var edgeWallTopBottom = {
+            x1: 0, 
+            y1: 0, 
+            x2: Constants.CANVAS_WIDTH,
+            y2: 0, 
+            autoReflectY: true
+        };
+        this.addWallsFrom(edgeWallTopBottom);
+        
+        // Load and pre-process walls
+        if (level.walls) {
+            var levelWalls = level.walls;
+            for (var i = 0; i < levelWalls.length; i++) {
+                var nextWall = levelWalls[i];
+                this.addWallsFrom(nextWall);
+            }
+        }
+    };
+    
+    /**
+     * Add all walls from the specified wall.
+     * This function will "decompress" reflected walls into separate walls, 
+     * so that it doesn't have to be done each game loop.
+     * @param {Object} wall
+     * @returns {undefined}
+     */
+    GameEngine.prototype.addWallsFrom = function(wall) {
+        this.currentWalls.push(wall);
+
+        if (wall.autoReflectX) {
+            this.currentWalls.push({
+                x1: Constants.CANVAS_WIDTH - wall.x1, 
+                y1: wall.y1,
+                x2: Constants.CANVAS_WIDTH - wall.x2, 
+                y2: wall.y2
+            });
+        }
+        if (wall.autoReflectY) {
+            this.currentWalls.push({
+                x1: wall.x1, 
+                y1: Constants.CANVAS_HEIGHT - wall.y1,
+                x2: wall.x2, 
+                y2: Constants.CANVAS_HEIGHT - wall.y2
+            });
+        }
+        if (wall.autoReflectAll) {
+            this.currentWalls.push({
+                x1: Constants.CANVAS_WIDTH - wall.x1, 
+                y1: Constants.CANVAS_HEIGHT - wall.y1,
+                x2: Constants.CANVAS_WIDTH - wall.x2, 
+                y2: Constants.CANVAS_HEIGHT - wall.y2
+            });
         }
     };
     
@@ -418,15 +511,14 @@ window.GameEngine = (function () {
             return;
         }
         
+        // Grab the current circle
         var currentCircle = this.circles[this.currentCircleIndex];
+        
+        // Grab the drawing context
         var ctx = this.ctx;
         
-        ctx.beginPath();
-        ctx.moveTo(this.lastMouseX, this.lastMouseY);
-        ctx.lineTo(currentCircle.x, currentCircle.y);
-        ctx.closePath();
-        ctx.strokeStyle = "white";
-        ctx.stroke();
+        // Draw the arrow
+        this.arrowDrawer.drawArrow(this.ctx, "white", this.lastMouseX, this.lastMouseY, currentCircle.x, currentCircle.y);
         
     };
     
@@ -441,7 +533,7 @@ window.GameEngine = (function () {
      */
     GameEngine.prototype.drawText = function(string, x, y, size, color) {
         var ctx = this.ctx;
-        ctx.font = 'bold ' + size + 'px Monospace';
+        ctx.font = 'bold ' + size + 'px Lucida Console';
         ctx.fillStyle = color;
         ctx.fillText(string, x, y);
     };
@@ -476,7 +568,7 @@ window.GameEngine = (function () {
             ctx.save();
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
-            this.drawText("To begin, click and drag a circle.", Constants.CANVAS_WIDTH / 2, Constants.CANVAS_HEIGHT / 2, fontSize, "white");
+            this.drawText("To begin, click and drag a jewel.", Constants.CANVAS_WIDTH / 2, Constants.CANVAS_HEIGHT / 2, fontSize, "white");
             this.drawText("I wonder what will happen!", Constants.CANVAS_WIDTH / 2, (Constants.CANVAS_HEIGHT / 2) + 35, fontSize, "white");
             ctx.restore();
         } // end if
@@ -546,8 +638,8 @@ window.GameEngine = (function () {
     GameEngine.prototype.drawWalls = function() {
         var level = Levels.LEVELS[this.currentLevel];
         var ctx = this.ctx;
-        if (level.walls) {
-            var walls = level.walls;
+        if (this.currentWalls) {
+            var walls = this.currentWalls;
             
             for (var i = 0; i < walls.length; i++) {
                 
@@ -555,19 +647,6 @@ window.GameEngine = (function () {
                 
                 this.drawWall(wall.x1, wall.y1, wall.x2, wall.y2);
                 
-                if (wall.autoReflectX) {
-                    this.drawWall(Constants.CANVAS_WIDTH - wall.x1, wall.y1, Constants.CANVAS_WIDTH - wall.x2, wall.y2);
-                }
-                if (wall.autoReflectY) {
-                    this.drawWall(wall.x1, Constants.CANVAS_HEIGHT - wall.y1, wall.x2, Constants.CANVAS_HEIGHT - wall.y2);
-                }
-                if (wall.autoReflectAll) {
-                    this.drawWall(
-                    Constants.CANVAS_WIDTH - wall.x1, 
-                    Constants.CANVAS_HEIGHT - wall.y1, 
-                    Constants.CANVAS_WIDTH - wall.x2, 
-                    Constants.CANVAS_HEIGHT - wall.y2);
-                }
             }
         }
     };
@@ -591,11 +670,39 @@ window.GameEngine = (function () {
             if (c.state === Constants.CIRCLE_STATE_DONE)
                 continue;
 
-            ctx.beginPath();
+            
+            
+            // Create offscreen buffer for image tinting;
+            // Credits to 
+            // http://stackoverflow.com/questions/2688961/how-do-i-tint-an-image-with-html5-canvas
+            var buffer = document.createElement('canvas');
+            buffer.width = this.jewelImage.width;
+            buffer.height = this.jewelImage.height;
+            var bx = buffer.getContext('2d');
+
+            // Fill offscreen buffer with the tint color
+            bx.fillStyle = c.fillStyle;
+            bx.fillRect(0,0,buffer.width,buffer.height);
+
+            // Destination atop makes a result with an alpha channel identical to the image
+            bx.globalCompositeOperation = "destination-atop";
+            bx.drawImage(this.jewelImage,0,0);
+            
+            
+            /*ctx.beginPath();
             ctx.arc(c.x, c.y, c.radius, 0, Math.PI * 2, false);
             ctx.closePath();
             ctx.fillStyle = c.fillStyle;
-            ctx.fill();
+            ctx.fill();*/
+            //var halfRadius = c.radius / 2;
+            ctx.drawImage(this.jewelImage, c.x - c.radius, c.y - c.radius, c.radius * 2, c.radius * 2);
+            
+            var prevAlpha = ctx.globalAlpha;
+            ctx.globalAlpha = 0.5;
+            ctx.drawImage(buffer, c.x - c.radius, c.y - c.radius, c.radius * 2, c.radius * 2);
+            
+            ctx.globalAlpha = prevAlpha;
+            
         }
     };
     
@@ -627,10 +734,39 @@ window.GameEngine = (function () {
             c.move(dt);
 
             // Did the circle leave the screen?
-            if (Utilities.circleHitLeftRight(c.x, c.y, c.radius))
+            // TODO: Replace these with invisible walls
+            /*if (Utilities.circleHitLeftRight(c.x, c.y, c.radius))
+            {
                 c.xSpeed *= -1;
+            }
             if (Utilities.circleHitTopBottom(c.x, c.y, c.radius))
+            {
                 c.ySpeed *= -1;
+            }*/
+            
+            // Check if the circle hit a wall
+            var level = Levels.LEVELS[this.currentLevel];
+            if (this.currentWalls) {
+                var walls = this.currentWalls;
+                for (var w = 0; w < walls.length; w++) {
+                    var wall = walls[w];
+                    
+                    if (Collisions.lineCircleCollide([wall.x1, wall.y1], [wall.x2, wall.y2], [c.x, c.y], c.radius)) {
+                        
+                        if (wall.x1 === wall.x2) {
+                            if (c.x <= wall.x1 && c.xSpeed > 0 || c.x >= wall.x1 && c.xSpeed < 0) {
+                                c.xSpeed *= -1;
+                            }
+                        }
+                        else if (wall.y1 === wall.y2) {
+                            if (c.y <= wall.y1 && c.ySpeed > 0 || c.y >= wall.y1 && c.ySpeed < 0) {
+                                c.ySpeed *= -1;
+                            }
+                        }
+                        
+                    }
+                }
+            }
         }
     };
     
@@ -763,8 +899,9 @@ window.GameEngine = (function () {
         var ctx = engine.ctx;
 
         // Draw the background
-        ctx.fillStyle = "black";
-        ctx.fillRect(0, 0, Constants.CANVAS_WIDTH, Constants.CANVAS_HEIGHT);
+        //ctx.fillStyle = "black";
+        //ctx.fillRect(0, 0, Constants.CANVAS_WIDTH, Constants.CANVAS_HEIGHT);
+        ctx.drawImage(engine.backgroundImage, 0, 0);
 
         // Draw the circles
         ctx.globalAlpha = 0.9;

@@ -19,6 +19,6 @@
         var engine = new GameEngine();
         
         // Start the game
-        engine.init();
+        engine.initLoading();
     };
 })();

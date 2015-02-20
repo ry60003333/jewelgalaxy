@@ -18,7 +18,7 @@ window.AudioManager = (function () {
         this.targetAudio = null;
         this.currentEffect = 0;
         this.currentDirection = 1;
-        this.effectSounds = ["1.mp3", "2.mp3", "3.mp3", "4.mp3", "5.mp3", "6.mp3", "7.mp3", "8.mp3", ];
+        this.effectSounds = ["1.mp3", "2.mp3", "3.mp3", "4.mp3", "5.mp3", "6.mp3", "7.mp3", "8.mp3"];
         this.metTargetSound = "level-complete.mp3";
     }
     
