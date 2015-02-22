@@ -137,13 +137,13 @@ window.GameEngine = (function () {
             engine.update();
         };
 
-        this.canvas.onmousedown = this.handleMouseDown;
-        this.canvas.onmouseup = this.handleMouseUp;
-        this.canvas.onmousemove = this.handleMouseMove;
+        this.canvas.addEventListener("mousedown", engine.handleMouseDown.bind(engine), false);
+        this.canvas.addEventListener("mouseup", engine.handleMouseUp.bind(engine), false);
+        this.canvas.addEventListener("mousemove", engine.handleMouseMove.bind(engine), false);
 
-        this.canvas.touchstart = this.handleTouchDown;
-        this.canvas.touchend = this.handleMouseUp;
-        this.canvas.touchmove = this.handleTouchMove;
+        this.canvas.addEventListener("touchstart", engine.handleTouchDown.bind(engine), false);
+        this.canvas.addEventListener("touchend", engine.handleTouchUp.bind(engine), false);
+        this.canvas.addEventListener("touchmove", engine.handleTouchMove.bind(engine), false);
 
         engine.update();
         
@@ -407,7 +407,9 @@ window.GameEngine = (function () {
      * @param {Object} e The event.
      * @returns {undefined}
      */
-    GameEngine.prototype.handleMouseDown = function(e) {
+    GameEngine.prototype.handleMouseDown = function (e) {
+
+        event.preventDefault();
         
         var engine = GameEngine.INSTANCE;
 
@@ -471,7 +473,7 @@ window.GameEngine = (function () {
      */
     GameEngine.prototype.handleTouchDown = function (e) {
 
-        console.log("TOUCHDOWN!");
+        event.preventDefault();
 
         var engine = GameEngine.INSTANCE;
 
@@ -519,7 +521,7 @@ window.GameEngine = (function () {
 
         for (var i = engine.circles.length - 1; i >= 0; i--) {
             var c = engine.circles[i];
-            if (Utilities.pointInsideCircle(e.pageX, e.pageY, c)) {
+            if (Utilities.pointInsideCircle(e.targetTouches[0].pageX - this.canvas.offsetLeft, e.targetTouches[0].pageY - this.canvas.offsetTop, c)) {
                 engine.currentCircleIndex = i;
                 break;
             }
@@ -527,14 +529,14 @@ window.GameEngine = (function () {
     };
 
     /**
-     * Handle a mouse up and touch up event.
+     * Handle a mouse up event.
      * @param {Object} e The event.
      * @returns {undefined}
      */
     GameEngine.prototype.handleMouseUp = function (e) {
 
-        console.log("TOUCHUP!");
-        
+        event.preventDefault();
+
         var engine = GameEngine.INSTANCE;
         
         if (engine.currentCircleIndex === -1) {
@@ -552,12 +554,38 @@ window.GameEngine = (function () {
     };
 
     /**
+     * Handle a touch up event.
+     * @param {Object} e The event.
+     * @returns {undefined}
+     */
+    GameEngine.prototype.handleTouchUp = function (e) {
+
+        event.preventDefault();
+
+        var engine = GameEngine.INSTANCE;
+
+        if (engine.currentCircleIndex === -1) {
+            return;
+        }
+
+        engine.currentMoveCount++;
+
+        var currentCircle = engine.circles[engine.currentCircleIndex];
+        currentCircle.xSpeed = Utilities.clamp((currentCircle.x - engine.lastMouseX) * 0.05, -20, 20);
+        currentCircle.ySpeed = Utilities.clamp((currentCircle.y - engine.lastMouseY) * 0.05, -20, 20);
+
+        engine.currentCircleIndex = -1;
+    };
+
+    /**
      * Handle a mouse move event.
      * @param {Object} e The event.
      * @returns {undefined}
      */
     GameEngine.prototype.handleMouseMove = function (e) {
-        
+
+        event.preventDefault();
+
         var engine = GameEngine.INSTANCE;
         
         var mouse = Utilities.getMouse(e);
@@ -573,12 +601,12 @@ window.GameEngine = (function () {
      */
     GameEngine.prototype.handleTouchMove = function (e) {
 
-        console.log("TOUCHMOVE!");
+        event.preventDefault();
 
         var engine = GameEngine.INSTANCE;
 
-        engine.lastMouseX = e.pageX;
-        engine.lastMouseY = e.pageY;
+        engine.lastMouseX = e.targetTouches[0].pageX - this.canvas.offsetLeft;
+        engine.lastMouseY = e.targetTouches[0].pageY - this.canvas.offsetTop;
     };
     
     /**
