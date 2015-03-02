@@ -59,8 +59,18 @@ window.GameEngine = (function () {
         this.arrowDrawer = new ArrowDrawer();
         
         // Image assets
-        this.backgroundImage = new Image();
-        this.jewelImage = new Image();
+        this.backgroundImageUrls = [
+            "background", 
+            "red_space", 
+            "blue_space", 
+            "space_glow", 
+            "nebula", 
+            "asteroids"
+        ];
+        this.backgroundImages = [];
+        
+        this.jewelImageUrls = ["topaz"];
+        this.jewelImages = [];
 
     }
     
@@ -79,8 +89,20 @@ window.GameEngine = (function () {
         var assetLoader = this.assetLoader;
         
         // Load the background image
-        assetLoader.addImage(this.backgroundImage, "images/background.png");
-        assetLoader.addImage(this.jewelImage, "images/topaz.png");
+        /*assetLoader.addImage(this.backgroundImages[0], "images/background.png");
+        assetLoader.addImage(this.backgroundImages[1], "images/red_space.png");
+        assetLoader.addImage(this.jewelImages[0], "images/topaz.png");*/
+        
+        // Load assets
+        for (var i = 0; i < this.backgroundImageUrls.length; i++) {
+            this.backgroundImages[i] = new Image();
+            assetLoader.addImage(this.backgroundImages[i], "images/" + this.backgroundImageUrls[i] + ".png");
+        }
+        
+        for (var i = 0; i < this.jewelImageUrls.length; i++) {
+            this.jewelImages[i] = new Image();
+            assetLoader.addImage(this.jewelImages[i], "images/" + this.jewelImageUrls[i] + ".png");
+        }
         
         // When loading is complete, start the game
         assetLoader.load(function() {
@@ -703,9 +725,9 @@ window.GameEngine = (function () {
             ctx.save();
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
-            this.drawText("Complete - " + level.winMessage, Constants.CANVAS_WIDTH / 2, Constants.CANVAS_HEIGHT / 2 - 40, fontSize, "green");
-            this.drawText("Bonus: " + this.lastBonus, Constants.CANVAS_WIDTH / 2, Constants.CANVAS_HEIGHT / 2, fontSize, "lightgreen");
-            this.drawText("Click to continue", Constants.CANVAS_WIDTH / 2, Constants.CANVAS_HEIGHT / 2 + 40, fontSize, "blue");
+            this.drawText("Complete - " + level.winMessage, Constants.CANVAS_WIDTH / 2, Constants.CANVAS_HEIGHT / 2 - 40, fontSize, "white");
+            this.drawText("Bonus: " + this.lastBonus, Constants.CANVAS_WIDTH / 2, Constants.CANVAS_HEIGHT / 2, fontSize, "white");
+            this.drawText("Click to continue", Constants.CANVAS_WIDTH / 2, Constants.CANVAS_HEIGHT / 2 + 40, fontSize, "lightblue");
             //this.drawText("Next round there are " + (numCircles + Constants.NUM_CIRCLES_LEVEL_INCREASE) + " circles", Constants.CANVAS_WIDTH / 2, Constants.CANVAS_HEIGHT / 2 + 35, 24, "#ddd");
 
             ctx.restore();
@@ -733,7 +755,7 @@ window.GameEngine = (function () {
             }
             this.drawText(gameOverText, Constants.CANVAS_WIDTH / 2, Constants.CANVAS_HEIGHT / 2 - 40, fontSize, "lightgreen");
             this.drawText("Click to play again", Constants.CANVAS_WIDTH / 2, Constants.CANVAS_HEIGHT / 2, fontSize, "red");
-            this.drawText("Your final score was " + (totalScore) + "!", Constants.CANVAS_WIDTH / 2, Constants.CANVAS_HEIGHT / 2 + 35, 24, "#ddd");
+            this.drawText("Your final score was " + (this.totalScore) + "!", Constants.CANVAS_WIDTH / 2, Constants.CANVAS_HEIGHT / 2 + 35, 24, "#ddd");
 
             ctx.restore();
         }
@@ -802,8 +824,9 @@ window.GameEngine = (function () {
             // Credits to 
             // http://stackoverflow.com/questions/2688961/how-do-i-tint-an-image-with-html5-canvas
             var buffer = document.createElement('canvas');
-            buffer.width = this.jewelImage.width;
-            buffer.height = this.jewelImage.height;
+            var jewelImage = this.jewelImages[0];
+            buffer.width = jewelImage.width;
+            buffer.height = jewelImage.height;
             var bx = buffer.getContext('2d');
 
             // Fill offscreen buffer with the tint color
@@ -812,7 +835,7 @@ window.GameEngine = (function () {
 
             // Destination atop makes a result with an alpha channel identical to the image
             bx.globalCompositeOperation = "destination-atop";
-            bx.drawImage(this.jewelImage,0,0);
+            bx.drawImage(jewelImage,0,0);
             
             
             /*ctx.beginPath();
@@ -823,7 +846,7 @@ window.GameEngine = (function () {
             //var halfRadius = c.radius / 2;
             
             // Draw an image instead of a circle
-            ctx.drawImage(this.jewelImage, c.x - c.radius, c.y - c.radius, c.radius * 2, c.radius * 2);
+            ctx.drawImage(jewelImage, c.x - c.radius, c.y - c.radius, c.radius * 2, c.radius * 2);
             
             var prevAlpha = ctx.globalAlpha;
             ctx.globalAlpha = 0.5;
@@ -976,7 +999,7 @@ window.GameEngine = (function () {
                 if (bonus < 0) {
                     bonus = 0;
                 } else {
-                    this.lastBonus = 3 * bonus
+                    this.lastBonus = 3 * bonus;
                     this.totalScore += this.lastBonus;
                 }
 
@@ -995,7 +1018,7 @@ window.GameEngine = (function () {
                 }
             }
 
-            this.audioManager.stopAudio();
+            //this.audioManager.stopAudio();
         }
             
     };
@@ -1007,6 +1030,7 @@ window.GameEngine = (function () {
     GameEngine.prototype.update = function() {
         
         var engine = GameEngine.INSTANCE;
+        var currentLevel = Levels.LEVELS[engine.currentLevel];
 
         // Calculate delta time
         var dt = engine.calculateDeltaTime();
@@ -1035,7 +1059,11 @@ window.GameEngine = (function () {
         // Draw the background
         //ctx.fillStyle = "black";
         //ctx.fillRect(0, 0, Constants.CANVAS_WIDTH, Constants.CANVAS_HEIGHT);
-        ctx.drawImage(engine.backgroundImage, 0, 0);
+        var imageIndex = 0;
+        if (currentLevel.backgroundImage) {
+            imageIndex = currentLevel.backgroundImage;
+        }
+        ctx.drawImage(engine.backgroundImages[imageIndex], 0, 0);
 
         // Draw the circles
         ctx.globalAlpha = 0.9;

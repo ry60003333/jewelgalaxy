@@ -20,12 +20,98 @@ window.Levels = (function () {
      * The array of levels.
      */
     Levels.LEVELS = [
-        // 10
         {
             winMessage: "Great job!",
             loseMessage: "Try again?",
             baseColor: "#19E7FF",
             startRadius: 23, 
+            backgroundImage: 1,
+            circles: [
+                // Single Pair
+                {
+                    x: Constants.CANVAS_WIDTH/2 - Constants.CANVAS_WIDTH/6, 
+                    y: Constants.CANVAS_HEIGHT/2,
+                    color: "darkred"
+                }, 
+                // West Pair
+                {
+                    x: Constants.CANVAS_WIDTH/2 + Constants.CANVAS_WIDTH/6, 
+                    y: Constants.CANVAS_HEIGHT/2, 
+                }
+            ], 
+            walls: [
+                {
+                    x1: Constants.CANVAS_WIDTH/4, 
+                    y1: Constants.CANVAS_HEIGHT/2 - Constants.CANVAS_HEIGHT / 8,
+                    x2: Constants.CANVAS_WIDTH/2, 
+                    y2: Constants.CANVAS_HEIGHT/2 - Constants.CANVAS_HEIGHT / 8, 
+                    autoReflectX: true, 
+                    autoReflectY: true, 
+                    autoReflectAll: true
+                }, 
+                {
+                    x1: Constants.CANVAS_WIDTH/4, 
+                    y1: Constants.CANVAS_HEIGHT/2 - Constants.CANVAS_HEIGHT / 8,
+                    x2: Constants.CANVAS_WIDTH/4, 
+                    y2: Constants.CANVAS_HEIGHT - (Constants.CANVAS_HEIGHT/2 - Constants.CANVAS_HEIGHT / 8), 
+                    autoReflectX: true
+                }
+            ]
+        },
+        {
+            winMessage: "Fantastic!",
+            loseMessage: "Give it another go.",
+            baseColor: "#19E7FF",
+            startRadius: 23, 
+            backgroundImage: 2,
+            circles: [
+                // North Pair
+                {
+                    x: Constants.CANVAS_WIDTH/2, 
+                    y: Constants.CANVAS_HEIGHT/2 - Constants.CANVAS_HEIGHT/3.5,
+                    color: "lightblue"
+                }, 
+                {
+                    x: Constants.CANVAS_WIDTH/2, 
+                    y: Constants.CANVAS_HEIGHT/2 - Constants.CANVAS_HEIGHT/6
+                }, 
+                // South Pair
+                {
+                    x: Constants.CANVAS_WIDTH/2, 
+                    y: Constants.CANVAS_HEIGHT/2 + Constants.CANVAS_HEIGHT/3.5,
+                    color: "darkblue"
+                }, 
+                {
+                    x: Constants.CANVAS_WIDTH/2, 
+                    y: Constants.CANVAS_HEIGHT/2 + Constants.CANVAS_HEIGHT/6
+                }, 
+            ], 
+            walls: [
+                {
+                    x1: Constants.CANVAS_WIDTH/2.5, 
+                    y1: Constants.CANVAS_HEIGHT/2, 
+                    x2: Constants.CANVAS_WIDTH/2.5, 
+                    y2: Constants.CANVAS_HEIGHT / 8, 
+                    autoReflectX: true, 
+                    autoReflectY: true, 
+                    autoReflectAll: true
+                }, 
+                {
+                    x1: Constants.CANVAS_WIDTH/2.5, 
+                    y1: Constants.CANVAS_HEIGHT / 8, 
+                    x2: Constants.CANVAS_WIDTH - (Constants.CANVAS_WIDTH/2.5), 
+                    y2: Constants.CANVAS_HEIGHT / 8, 
+                    autoReflectY: true
+                }
+            ]
+        },
+        // 10
+        {
+            winMessage: "Amazing!",
+            loseMessage: "Don't give up.",
+            baseColor: "#19E7FF",
+            startRadius: 23, 
+            backgroundImage: 0,
             circles: [
                 // North Pair
                 {
@@ -109,6 +195,7 @@ window.Levels = (function () {
             loseMessage: "Try again?",
             baseColor: "#19E7FF",
             startRadius: 23,
+            backgroundImage: 3,
             circles: [
                 // East Pair
                 {
@@ -174,14 +261,15 @@ window.Levels = (function () {
         // 15
         {
             winMessage: "Do you like the colors?",
-            loseMessage: "Those darn circles...",
+            loseMessage: "Those darn jewels...",
             baseColor: "#28FC9D",
             startRadius: 27, 
+            backgroundImage: 4,
             circles: [
                 {
                     x: Constants.CANVAS_WIDTH/8, 
                     y: Constants.CANVAS_HEIGHT - (Constants.CANVAS_HEIGHT / 5), 
-                    color: "purple"
+                    color: "turquoise"
                 }, 
                 {
                     x: Constants.CANVAS_WIDTH/3.5, 
@@ -191,7 +279,7 @@ window.Levels = (function () {
                 {
                     x: Constants.CANVAS_WIDTH/8, 
                     y: Constants.CANVAS_HEIGHT - (Constants.CANVAS_HEIGHT / 2),
-                    color: "darkblue"
+                    color: "cornsilk"
                 }, 
                 {
                     x: Constants.CANVAS_WIDTH/3.5, 
@@ -201,7 +289,7 @@ window.Levels = (function () {
                 {
                     x: Constants.CANVAS_WIDTH - (Constants.CANVAS_WIDTH/8), 
                     y: Constants.CANVAS_HEIGHT - (Constants.CANVAS_HEIGHT / 5), 
-                    color: "purple"
+                    color: "turquoise"
                 }, 
                 {
                     x: Constants.CANVAS_WIDTH - (Constants.CANVAS_WIDTH/3.5), 
@@ -211,7 +299,7 @@ window.Levels = (function () {
                 {
                     x: Constants.CANVAS_WIDTH - (Constants.CANVAS_WIDTH/8), 
                     y: Constants.CANVAS_HEIGHT - (Constants.CANVAS_HEIGHT / 2),
-                    color: "darkblue"
+                    color: "cornsilk"
                 }, 
                 {
                     x: Constants.CANVAS_WIDTH - (Constants.CANVAS_WIDTH/3.5), 
@@ -234,6 +322,7 @@ window.Levels = (function () {
             loseMessage: "No worries, try again!",
             baseColor: "#FF61FA",
             startRadius: 23,
+            backgroundImage: 5,
             circles: [
                 {
                     x: Constants.CANVAS_WIDTH / 5,
@@ -248,7 +337,7 @@ window.Levels = (function () {
                 {
                     x: Constants.CANVAS_WIDTH / 2.6, 
                     y: Constants.CANVAS_HEIGHT / 4,
-                    color: "#999999"
+                    color: "darkblue"
                 }, 
                 {
                    x: Constants.CANVAS_WIDTH / 1.7, 
@@ -258,7 +347,7 @@ window.Levels = (function () {
                 {
                     x: Constants.CANVAS_WIDTH / 1.7, 
                     y: Constants.CANVAS_HEIGHT / 4,
-                    color: "#333333"
+                    color: "darkmagenta"
                 }, 
                 {
                     x: Constants.CANVAS_WIDTH / 2.6, 
@@ -279,13 +368,13 @@ window.Levels = (function () {
                 {
                     x1: 0, 
                     y1: Constants.CANVAS_HEIGHT / 2, 
-                    x2: Constants.CANVAS_WIDTH - (Constants.CANVAS_WIDTH / 1.5), 
+                    x2: Constants.CANVAS_WIDTH - (Constants.CANVAS_WIDTH / 1.3), 
                     y2: Constants.CANVAS_HEIGHT / 2, 
                     autoReflectX: true
                 }
             ]
        },
-        // 25
+       /* // 25
         {
             winMessage: "You destroyed them!",
             loseMessage: "Just click randomly?",
@@ -358,7 +447,7 @@ window.Levels = (function () {
             maxSpeed: 113,
             maxRadius: 33,
             explosionSpeed: 38
-    },
+    },*/
     ];
     
     
